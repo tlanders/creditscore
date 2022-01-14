@@ -1,0 +1,39 @@
+version: '3'
+services:
+  creditscore-app:
+    container_name: creditscore-app
+    image: troylanders/creditscore_app
+    restart: on-failure
+    ports:
+      - 10555:8080
+    environment:
+      WAIT_HOSTS: mysql:3306
+    depends_on:
+      - dockermysql
+  creditcard-app:
+    container_name: creditcard-app
+    image: troylanders/creditcard_app
+    restart: on-failure
+    ports:
+      - 10666:9090
+    environment:
+      WAIT_HOSTS: mysql:3306
+    depends_on:
+      - dockermysql
+      - creditscore-app
+  dockermysql:
+    container_name: dockermysql
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: creditdb
+      MYSQL_ROOT_PASSWORD: test1234
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    ports:
+      - 6666:3306
+    healthcheck:
+      test: "/usr/bin/mysql --user=root password=test1234 --execute \"SHOW DATABASES \""
+      interval: 4s
+      timeout: 20s
+      retries: 5
